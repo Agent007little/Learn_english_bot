@@ -3,12 +3,23 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message
+
+from database.database import save_word, show_my_dict
 from filters.filters import only_english, only_russian
 
 from States.States import FSMAddWord
 from lexicon.lexicon import LEXICON
 
 router = Router()
+eng = ''
+rus = ''
+
+
+# Хэндлер для команды /my_dict
+@router.message(Command(commands=["my_dict"]), StateFilter(default_state))
+async def process_my_dict_command(message: Message):
+    text = await show_my_dict(message.from_user.id)
+    await message.answer(text=text)
 
 
 # Этот хэндлер срабатывает на команду /add_word.
@@ -24,6 +35,8 @@ async def process_add_word_command(message: Message, state: FSMContext):
 # Переводит в состояние ожидания ввода перевода слова.
 @router.message(StateFilter(FSMAddWord.fill_word), lambda x: only_english(x.text))
 async def process_word_sent(message: Message, state: FSMContext):
+    global eng
+    eng = message.text
     await message.answer(text=LEXICON["word_sent"])
     # Устанавливаем состояние ожидания ввода перевода
     await state.set_state(FSMAddWord.fill_translation)
@@ -41,7 +54,9 @@ async def warning_no_english(message: Message):
 @router.message(StateFilter(FSMAddWord.fill_translation), lambda x: only_russian(x.text))
 async def process_translation_sent(message: Message, state: FSMContext):
     # Тут нужно сохранить данные в БД!!!!!!!!!!!!!!!!!!!!!!!!!
-
+    global rus
+    rus = message.text
+    await save_word(eng, rus, int(message.from_user.id))
     await message.answer(LEXICON["translation_sent"])
     # Перевод в стандартное состояние.
     await state.clear()

@@ -2,6 +2,9 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+
+from config_data.set_menu import set_main_menu
+from database.database import init_db
 from handlers import commands_handlers, dictionary_handlers
 
 from config_data.config import Config, load_config
@@ -23,9 +26,15 @@ async def main():
     # Загружаем конфиг в переменную config
     config: Config = load_config()
 
-    # Инициализируем бот и диспетчер
+    # Инициализируем бот, диспетчер и БД
     bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
     dp = Dispatcher()
+
+    # Настраиваем кнопку Меню.
+    await set_main_menu(bot)
+
+    # Инициализация базы данных.
+    init_db()
 
     # Регистриуем роутеры в диспетчере
     dp.include_router(commands_handlers.router)
@@ -33,6 +42,7 @@ async def main():
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
