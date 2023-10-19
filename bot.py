@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 
 from config_data.set_menu import set_main_menu
 from database.database import init_db
-from handlers import commands_handlers, dictionary_handlers
+from handlers import commands_handlers, dictionary_handlers, learn_words_handlers, unknown_command
 
 from config_data.config import Config, load_config
 
@@ -34,11 +34,13 @@ async def main():
     await set_main_menu(bot)
 
     # Инициализация базы данных.
-    init_db()
+    init_db(force=True)
 
     # Регистриуем роутеры в диспетчере
     dp.include_router(commands_handlers.router)
     dp.include_router(dictionary_handlers.router)
+    dp.include_router(learn_words_handlers.router)
+    dp.include_router(unknown_command.router)
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

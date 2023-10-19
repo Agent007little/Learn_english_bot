@@ -1,6 +1,7 @@
 import psycopg2
 
 from config_data.config import load_database, DataBase
+from lexicon.lexicon import LEXICON_ADD_WORD
 
 # Загружаем данные БД
 db: DataBase = load_database()
@@ -55,7 +56,7 @@ async def save_word(eng: str, rus: str, tg_id: int):
 
         c.execute("INSERT INTO user_word (user_id, word_id) "
                   "SELECT users.id, words.id "
-                  "FROM users, words " 
+                  "FROM users, words "
                   "WHERE users.tg_id = %s "
                   "AND words.eng = %s "
                   "AND words.rus = %s "
@@ -63,17 +64,49 @@ async def save_word(eng: str, rus: str, tg_id: int):
 
 
 async def show_my_dict(user_tg_id):
-    """Показывает словарь пользователя."""
+    """Показывает словарь пользователя. Если он пустой, вернуть текст пустого словаря из лексикона"""
     with connection.cursor() as c:
         c.execute("SELECT words.eng, words.rus "
                   "FROM users "
                   "JOIN user_word ON users.id = user_word.user_id "
                   "JOIN words ON user_word.word_id = words.id "
-                  "WHERE users.tg_id = (%s);", (user_tg_id, ))
+                  "WHERE users.tg_id = (%s);", (user_tg_id,))
         result_str = ''
-        fetchall = c.fetchall()
+        if c.fetchall():
+            fetchall = c.fetchall()
+            for i in fetchall:
+                result_str += f"{i[0]} - {i[1]}\n"
+            return result_str
+        else:
+            return LEXICON_ADD_WORD["empty_dict"]
+
+
+def get_user_dict_eng_rus(user_tg_id: int) -> dict[str: str]:
+    """Создаёт англо-русский словарь пользователя."""
+    with connection.cursor() as c:
+        c.execute("SELECT words.eng, words.rus "
+                  "FROM users "
+                  "JOIN user_word ON users.id = user_word.user_id "
+                  "JOIN words ON user_word.word_id = words.id "
+                  "WHERE users.tg_id = (%s);", (user_tg_id,))
+        fetchall: list[tuple[str: str]] = c.fetchall()
+        result_dict = dict()
         for i in fetchall:
-            result_str += f"{i[0]} - {i[1]}\n"
-        print(result_str)
-        return result_str
+            result_dict[i[0]] = i[1]
+        return result_dict
+
+
+def get_word_from_db(eng: str):
+    """Возвращает перевод английского слова, если он существует."""
+    with connection.cursor() as c:
+        c.execute("SELECT rus "
+                  "FROM words "
+                  "WHERE eng = %s;", (eng,))
+        fetchall: list[tuple[str]] = c.fetchall()
+        if not fetchall:
+            return None
+        result_str = ""
+        for item in fetchall:
+            result_str = result_str + item[0] + ", "
+        return result_str[:-2]
 
