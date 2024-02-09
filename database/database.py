@@ -72,8 +72,8 @@ async def show_my_dict(user_tg_id):
                   "JOIN words ON user_word.word_id = words.id "
                   "WHERE users.tg_id = (%s);", (user_tg_id,))
         result_str = ''
-        if c.fetchall():
-            fetchall = c.fetchall()
+        fetchall = c.fetchall()
+        if fetchall:
             for i in fetchall:
                 result_str += f"{i[0]} - {i[1]}\n"
             return result_str

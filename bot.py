@@ -34,7 +34,7 @@ async def main():
     await set_main_menu(bot)
 
     # Инициализация базы данных.
-    init_db(force=True)
+    init_db(force=False)
 
     # Регистриуем роутеры в диспетчере
     dp.include_router(commands_handlers.router)
