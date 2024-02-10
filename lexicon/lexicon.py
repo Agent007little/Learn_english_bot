@@ -46,12 +46,12 @@ LEXICON_LEARN_WORDS: dict[str: str] = {
 bot_dict_eng_words = []
 bot_dict_rus_words = []
 
-with open("lexicon\dict_eng_words.txt", "r", encoding="utf-8") as file:
+with open("lexicon/dict_eng_words.txt", "r", encoding="utf-8") as file:
     words = file.readlines()
     for word in words:
         bot_dict_eng_words.append(word.rstrip())
 
-with open("lexicon\dict_rus_words.txt", "r", encoding="utf-8") as file:
+with open("lexicon/dict_rus_words.txt", "r", encoding="utf-8") as file:
     words = file.readlines()
     for word in words:
         bot_dict_rus_words.append(word.rstrip())
