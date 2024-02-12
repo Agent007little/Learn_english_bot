@@ -7,7 +7,6 @@ from lexicon.lexicon import LEXICON_ADD_WORD
 db: DataBase = load_database()
 # Переменная для установки соединения с БД
 connection = psycopg2.connect(
-    port=5433,
     user=db.user_db,
     password=db.user_password,
     database=db.name_db)
